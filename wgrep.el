@@ -204,10 +204,7 @@ a file."
 ;;;###autoload
 (defun wgrep-setup ()
   "Setup wgrep preparation."
-  (cond ((eq major-mode 'grep-mode)
-         (define-key grep-mode-map wgrep-enable-key 'wgrep-change-to-wgrep-mode))
-        ((eq major-mode 'ack-mode)
-         (define-key ack-mode-map wgrep-enable-key 'wgrep-change-to-wgrep-mode)))
+  (define-key grep-mode-map wgrep-enable-key 'wgrep-change-to-wgrep-mode)
   ;; delete previous wgrep overlays
   (wgrep-cleanup-overlays (point-min) (point-max))
   (remove-hook 'post-command-hook 'wgrep-maybe-echo-error-at-point t)
@@ -433,10 +430,7 @@ a file."
   (remove-hook 'after-change-functions 'wgrep-after-change-function t)
   ;; do not remove `wgrep-maybe-echo-error-at-point' that display
   ;; errors at point
-  (cond ((eq major-mode 'grep-mode)
-         (use-local-map grep-mode-map))
-        ((eq major-mode 'ack-mode)
-         (use-local-map ack-mode-map)))
+  (use-local-map grep-mode-map)
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil)
   (setq buffer-read-only t))
@@ -525,8 +519,7 @@ When the *grep* buffer is huge, this might freeze your Emacs
 for several minutes.
 "
   (interactive)
-  (unless (or (eq major-mode 'grep-mode)
-              (eq major-mode 'ack-mode))
+  (unless (eq major-mode 'grep-mode)
     (error "Not a grep buffer"))
   (unless (wgrep-process-exited-p)
     (error "Active process working"))
@@ -728,7 +721,7 @@ This change will be applied when \\[wgrep-finish-edit]."
 
 (defun wgrep-cleanup-temp-buffer ()
   "Cleanup temp buffer in *grep* buffer."
-  (when (memq major-mode '(grep-mode ack-mode))
+  (when (memq major-mode '(grep-mode))
     (let ((grep-buffer (current-buffer)))
       (dolist (buf (buffer-list))
         (with-current-buffer buf
@@ -878,13 +871,9 @@ NEW may be nil this means deleting whole line."
 ;;;###autoload(add-hook 'grep-setup-hook 'wgrep-setup)
 (add-hook 'grep-setup-hook 'wgrep-setup)
 
-;;;###autoload(add-hook 'ack-setup-hook 'wgrep-setup)
-(add-hook 'ack-mode-hook 'wgrep-setup)
-
 ;; For `unload-feature'
 (defun wgrep-unload-function ()
-  (remove-hook 'grep-setup-hook 'wgrep-setup)
-  (remove-hook 'ack-mode-hook 'wgrep-setup))
+  (remove-hook 'grep-setup-hook 'wgrep-setup))
 
 (provide 'wgrep)
 
